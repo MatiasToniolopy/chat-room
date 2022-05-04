@@ -1,0 +1,59 @@
+{% extends 'main.html' %}
+
+{% block content %}
+<main class="profile-page layout layout--3">
+  <div class="container">
+ 
+    {% include 'base/topics_component.html' %}
+
+    <div class="roomList">
+      <div class="profile">
+        <div class="profile__avatar">
+          <div class="avatar avatar--large active">
+            <img src="{{user.avatar.url}}" />
+          </div>
+        </div>
+        <div class="profile__info">
+          <h3>{{user.name}}</h3>
+          <p>@{{user.username}}</p>
+          {% if request.user == user %}
+          <a href="{% url 'update-user' %}" class="btn btn--main btn--pill">Editar Perfil</a><br><br>
+          <a class="roomListRoom__topic"><span>{{user.followers.count}} Seguidores</span></a>
+          {% else %}
+          
+          <a class="roomListRoom__topic"><span>{{user.followers.count}} Seguidores</span></a><br><br>
+          {% endif %}
+          {% if request.user.is_authenticated %}
+          {% if user.username != request.user.username %}
+          {% if user not in request.user.followings %}
+          <a href="{% url 'follow' user.id %}" class="btn btn--main btn--pill">Seguir</a><br><br>
+          {% else %}
+          <a href="{% url 'unfollow' user.id %}" class="btn btn--main btn--pill">Dejar de Seguir</a><br><br>
+          {% endif %}
+          {% endif%}
+          {% endif %}
+        </div>
+        <div class="profile__about">
+          <h3>Biografia</h3>
+          <p>
+            {{user.bio}}
+          </p>
+        </div>
+      </div>
+
+      <div class="roomList__header">
+        <div>
+          <h2>Salas de estudio organizadas por @{{user.username}}</a>
+          </h2>
+        </div>
+      </div>
+      {% include 'base/feed_component.html' %}
+
+
+    </div>
+  
+    {% include 'base/activity_component.html' %}
+    
+  </div>
+</main>
+{% endblock content %}

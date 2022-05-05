@@ -70,8 +70,9 @@ def registerPage(request):
             user = form.save(commit=False)
             user.username = user.username.lower()
             user.save()
+            messages.success(request, 'Registro correcto, inicia sesion!')
             login(request, user)
-            return redirect('home')
+            return redirect('login')
         else:
             messages.error(request, 'Ocurrió un error durante el registro')
 
@@ -324,4 +325,8 @@ class ChangePasswordView(FormView):
         
         messages.success(request, 'Se restableció  tu contraseña!')
         
+        return redirect('login')
+    
+class VerificationView(View):
+    def get(self, request, uidb64, token):
         return redirect('login')

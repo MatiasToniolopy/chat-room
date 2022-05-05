@@ -71,7 +71,7 @@ def registerPage(request):
             user.username = user.username.lower()
             user.save()
             messages.success(request, 'Registro correcto, inicia sesion!')
-            login(request, user)
+            #login(request, user)
             return redirect('login')
         else:
             messages.error(request, 'Ocurrió un error durante el registro')

@@ -14,6 +14,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import EmailMessage
 from django.core.mail import send_mail
 import threading
+from .utils import account_activation_token
 
 from .forms import MyUserCreationForm, RoomForm, UserForm
 from .models import Message, Relationship, Room, Topic, User
@@ -69,9 +70,32 @@ def registerPage(request):
         if form.is_valid():
             user = form.save(commit=False)
             user.username = user.username.lower()
+            user.is_active = False
             user.save()
-            messages.success(request, 'Registro correcto, inicia sesion!')
-            #login(request, user)
+            
+            current_site = get_current_site(request)
+            email_body = {
+                    'user': user,
+                    'domain': current_site.domain,
+                    'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                    'token': account_activation_token.make_token(user),
+                }
+
+            link = reverse('activate', kwargs={'uidb64': email_body['uid'], 'token': email_body['token']})
+
+            email_subject = 'Activa tu cuenta ChatRoomStudy'
+
+            activate_url = 'http://'+current_site.domain+link
+
+            email = EmailMessage(
+                    email_subject,
+                    'Hola '+user.username + ', Gracias por registrarte, activa tu cuenta mediante el siguiente link. \n'+activate_url,
+                    'noreply@semycolon.com',
+                    [user.email],
+                )
+            email.send(fail_silently=False)
+            
+            messages.success(request, 'Registro correcto, te enviamos un mail para activar tu cuenta!')
             return redirect('login')
         else:
             messages.error(request, 'Ocurrió un error durante el registro')
@@ -329,4 +353,23 @@ class ChangePasswordView(FormView):
     
 class VerificationView(View):
     def get(self, request, uidb64, token):
+        try:
+            id = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=id)
+
+            if not account_activation_token.check_token(user, token):
+                return redirect('login'+'?message='+'Cuenta ya activa')
+            
+            if user.is_active:
+                return redirect('login')
+            user.is_active = True
+            user.save()
+            
+
+            messages.success(request, 'Cuenta activada, puedes iniciar sesion!')
+            return redirect('login')
+
+        except Exception as ex:
+            pass
+
         return redirect('login')

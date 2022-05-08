@@ -215,7 +215,7 @@ def deleteMessage(request, pk):
     message = Message.objects.get(id=pk)
 
     if request.user != message.user:
-        return HttpResponse('Your are not allowed here!!')
+        return HttpResponse('No tienes permisos para esta acción!!')
 
     if request.method == 'POST':
         message.delete()
